@@ -153,8 +153,9 @@ class IrcThread(threading.Thread):
         change = event["change"]
 
         owner = self.lookup_author(change["owner"]["email"])
+        submitter = self.lookup_author(change["submitter"]["email"])
 
-        message = "%s, owned by %s, was accepted (%s)" % (change["url"], owner, change["subject"])
+        message = "%s, owned by %s was accepted by %s (%s)" % (change["url"], submitter, owner, change["subject"])
         self.send_message("merge", change["project"], change["branch"], message)
 
 
