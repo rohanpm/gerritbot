@@ -165,7 +165,7 @@ class IrcThread(threading.Thread):
         owner = self.lookup_author(change["owner"]["email"])
         author = self.lookup_author(event["author"]["email"])
 
-        approvals = event["approvals"]
+        approvals = event.get("approvals", [])
         approval_str = ""
         approval_count = 0
         has_sanity_plusone = False
@@ -195,6 +195,7 @@ class IrcThread(threading.Thread):
 
         #{"type":"comment-added","change":{"project":"qt/qtjsondb","branch":"master","id":"Id3d738e326ec80da1bcb4f88b04a072ecbc83347","number":"11643","subject":"Added JsonDbClient::generateUuid()","owner":{"name":"Jamey Hicks","email":"jamey.hicks@nokia.com"},"url":"http://codereview.qt-project.org/11643"},"patchSet":{"number":"2","revision":"4f6681f6c13ec27dcfbfdbf36b1e9ceb6ab81be8","ref":"refs/changes/43/11643/2","uploader":{"name":"Jamey Hicks","email":"jamey.hicks@nokia.com"}},"author":{"name":"Qt Sanity Bot","email":"qt_sanity_bot@ovi.com"},"approvals":[{"type":"SRVW","description":"Sanity Review","value":"1"}],"comment":""}
         #{"type":"comment-added","change":{"project":"qt/qtjsondb","branch":"master","id":"Ia111d745f4a57cfe6479d92ed8e0b733f92c4e12","number":"11646","subject":"Added public JsonDbString class.","owner":{"name":"Jamey Hicks","email":"jamey.hicks@nokia.com"},"url":"http://codereview.qt-project.org/11646"},"patchSet":{"number":"3","revision":"93a7673cb03a2b96f1db8e311dc64a48f0d7be08","ref":"refs/changes/46/11646/3","uploader":{"name":"Jamey Hicks","email":"jamey.hicks@nokia.com"}},"author":{"name":"Jeremy Katz","email":"jeremy.katz@nokia.com"},"approvals":[{"type":"CRVW","description":"Code Review","value":"-1"},{"type":"SRVW","description":"Sanity Review","value":"0"}],"comment":"Too Hungarian notation for my taste, with the Str postfix on every public member.\n\nI think JsonDbString::id() is clear enough.\n\nFor the class name, JsonDbString sounds like it\u0027s a subclass of QString. Maybe JsonDbKey?"}
+        #{"type":"comment-added","change":{"project":"qt/qtbase","branch":"master","id":"Ic62a2469da6a2a85254ffc7c4d893395202c50d8","number":"11808","subject":"Avoid repeatedly registering the same meta-type","owner":{"name":"Jason McDonald","email":"jason.mcdonald@nokia.com"},"url":"http://codereview.qt-project.org/11808"},"patchSet":{"number":"1","revision":"c781c363ec0c69e37591396ea43fbe1f96788228","ref":"refs/changes/08/11808/1","uploader":{"name":"Jason McDonald","email":"jason.mcdonald@nokia.com"}},"author":{"name":"Qt Continuous Integration System","email":"qt-info@nokia.com"},"comment":"Successful integration\n\nNo regressions!"}
 
         message = "%s, owned by %s, was commented on by %s: %s" % (change["url"], owner, author, approval_str)
         self.send_message("comment", change["project"], change["branch"], message)
