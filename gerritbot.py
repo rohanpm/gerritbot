@@ -241,6 +241,10 @@ class IrcThread(threading.Thread):
 
         message = "[%s]: %s" % (msg_branch, orig_message)
         self.client.connection.privmsg(project_channel, message)
+
+        # CC to the generic channel
+        if project_channel != self.config.get(IRC, "channel"):
+            self.client.connection.privmsg(self.config.get(IRC, "channel"), message)
         pass
 
 irc = IrcThread(config); irc.start()
