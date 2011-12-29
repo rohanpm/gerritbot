@@ -214,10 +214,10 @@ class IrcThread(threading.Thread):
 
         owner = self.lookup_author(change["owner"]["email"])
 
-        if change['patchSet']['number'] == 1:
+        if event['patchSet']['number'] == 1:
             message = "%s pushed by %s: %s" % (change["url"], owner, change["subject"])
         else:
-            message = "%s updated to revision %s by %s: %s" % (change["url"], change["patchSet"]["number"], owner, change["subject"])
+            message = "%s updated to revision %s by %s: %s" % (change["url"], event["patchSet"]["number"], owner, change["subject"])
 
         self.send_message("comment", change["project"], change["branch"], message)
 
