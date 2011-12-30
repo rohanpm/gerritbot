@@ -195,7 +195,7 @@ class IrcThread(threading.Thread):
 
         if author == "Qt CI":
             # special case to detect CI pass/fail
-            if change["comment"] == "Successful integration\n\nNo regressions!":
+            if event["comment"] == "Successful integration\n\nNo regressions!":
                 message = "%s, owned by %s, %s_PASSED_%s CI" % (change["url"], owner, color(GREEN), color())
             else:
                 message = "%s, owned by %s, %s_FAILED_%s CI" % (change["url"], owner, color(RED), color())
