@@ -126,16 +126,17 @@ class IrcClient(irclib.SimpleIRCClient):
 
             if json == None:
                 # error
-                connection.privmsg(event.target(), "timed out (or something) while trying to load bug %s" % (bug))
+                print "error whilst trying to load bug %s" % (bug)
             else:
                 try:
                     ojson = simplejson.loads(json)
+                    bugurl = "https://bugreports.qt.nokia.com/browse/%s" % (bug)
                     connection.privmsg(event.target(),
-                            "https://bugreports.qt.nokia.com/browse/%s: %s" % (bug, ojson["fields"]["summary"]["value"]))
+                            "%s: %s - %s" % (irclib.nm_to_n(event.source()), ojson["fields"]["summary"]["value"], bugurl))
                 except:
                     print "exception parsing json!"
                     print json
-                    connection.privmsg(event.target(), "%s was not a valid bug or something" % (bug))
+                    connection.privmsg(event.target(), "woah, %s was not a valid bug or something" % (bug))
 
         # gerrit search: http://codereview.qt-project.org/#q,I,n,z
         # where I is the search thing
@@ -195,7 +196,7 @@ class IrcThread(threading.Thread):
         owner = self.lookup_author(change["owner"]["email"])
         submitter = self.lookup_author(event["submitter"]["email"])
 
-        message = "%s, owned by %s was accepted by %s (%s)" % (change["url"], owner, submitter, change["subject"])
+        message = "%s from %s staged by %s - %s" % (change["subject"], owner, submitter, change["url"])
         self.send_message("merge", change["project"], change["branch"], message)
 
 
@@ -219,9 +220,9 @@ class IrcThread(threading.Thread):
                 reviewtype = ""
 
             if approval["type"] == "SRVW":
-                reviewtype += "sanity"
+                reviewtype += "S"
             else:
-                reviewtype += "code"
+                reviewtype += "C"
 
             if approval["type"] == "SRVW" and author == "Qt Sanity Bot":
                 has_sanity_plusone = True
@@ -236,28 +237,22 @@ class IrcThread(threading.Thread):
         if author == "Qt CI":
             # special case to detect CI pass/fail
             if event["comment"] == "Successful integration\n\nNo regressions!":
-                message = "%s, owned by %s, %s_PASSED_%s CI" % (change["url"], owner, color(GREEN), color())
+                message = "%s from %s %s_PASSED_%s CI - %s" % (change["subject"], owner, color(GREEN), color(), change["url"])
             else:
-                message = "%s, owned by %s, %s_FAILED_%s CI" % (change["url"], owner, color(RED), color())
+                message = "%s from %s %s_FAILED_%s CI - %s" % (change["subject"], owner, color(RED), color(), change["url"])
         else:
-            message = "%s, owned by %s, was commented on by %s: %s" % (change["url"], owner, author, approval_str)
-
-        #{"type":"comment-added","change":{"project":"qt/qtjsondb","branch":"master","id":"Id3d738e326ec80da1bcb4f88b04a072ecbc83347","number":"11643","subject":"Added JsonDbClient::generateUuid()","owner":{"name":"Jamey Hicks","email":"jamey.hicks@nokia.com"},"url":"http://codereview.qt-project.org/11643"},"patchSet":{"number":"2","revision":"4f6681f6c13ec27dcfbfdbf36b1e9ceb6ab81be8","ref":"refs/changes/43/11643/2","uploader":{"name":"Jamey Hicks","email":"jamey.hicks@nokia.com"}},"author":{"name":"Qt Sanity Bot","email":"qt_sanity_bot@ovi.com"},"approvals":[{"type":"SRVW","description":"Sanity Review","value":"1"}],"comment":""}
-        #{"type":"comment-added","change":{"project":"qt/qtjsondb","branch":"master","id":"Ia111d745f4a57cfe6479d92ed8e0b733f92c4e12","number":"11646","subject":"Added public JsonDbString class.","owner":{"name":"Jamey Hicks","email":"jamey.hicks@nokia.com"},"url":"http://codereview.qt-project.org/11646"},"patchSet":{"number":"3","revision":"93a7673cb03a2b96f1db8e311dc64a48f0d7be08","ref":"refs/changes/46/11646/3","uploader":{"name":"Jamey Hicks","email":"jamey.hicks@nokia.com"}},"author":{"name":"Jeremy Katz","email":"jeremy.katz@nokia.com"},"approvals":[{"type":"CRVW","description":"Code Review","value":"-1"},{"type":"SRVW","description":"Sanity Review","value":"0"}],"comment":"Too Hungarian notation for my taste, with the Str postfix on every public member.\n\nI think JsonDbString::id() is clear enough.\n\nFor the class name, JsonDbString sounds like it\u0027s a subclass of QString. Maybe JsonDbKey?"}
-        #{"type":"comment-added","change":{"project":"qt/qtbase","branch":"master","id":"Ic62a2469da6a2a85254ffc7c4d893395202c50d8","number":"11808","subject":"Avoid repeatedly registering the same meta-type","owner":{"name":"Jason McDonald","email":"jason.mcdonald@nokia.com"},"url":"http://codereview.qt-project.org/11808"},"patchSet":{"number":"1","revision":"c781c363ec0c69e37591396ea43fbe1f96788228","ref":"refs/changes/08/11808/1","uploader":{"name":"Jason McDonald","email":"jason.mcdonald@nokia.com"}},"author":{"name":"Qt Continuous Integration System","email":"qt-info@nokia.com"},"comment":"Successful integration\n\nNo regressions!"}
+            message = "%s from %s reviewed by %s: %s - %s" % (change["subject"], owner, author, approval_str, change["url"])
 
         self.send_message("comment", change["project"], change["branch"], message)
 
     def patchset_created(self, event):
         change = event["change"]
-        #{"type":"patchset-created","change":{"project":"qt/qtbase","branch":"master","id":"Ibffc95833918f65be737f52d694ee81a2036c412","number":"10235","subject":"Fix movablity of QVariant.","owner":{"name":"Jędrzej Nowacki","email":"jedrzej.nowacki@nokia.com"},"url":"http://codereview.qt-project.org/10235"},"patchSet":{"number":"7","revision":"46c54c80327f283e6e95c0c47018c475c71f0443","ref":"refs/changes/35/10235/7","uploader":{"name":"Jędrzej Nowacki","email":"jedrzej.nowacki@nokia.com"}},"uploader":{"name":"Jędrzej Nowacki","email":"jedrzej.nowacki@nokia.com"}}
-
         owner = self.lookup_author(change["owner"]["email"])
 
         if event["patchSet"]["number"] == "1":
-            message = "%s pushed by %s: %s" % (change["url"], owner, change["subject"])
+            message = "%s pushed by %s - %s" % (change["subject"], owner, change["url"])
         else:
-            message = "%s updated to revision %s by %s: %s" % (change["url"], event["patchSet"]["number"], owner, change["subject"])
+            message = "%s updated to v%s by %s - %s" % (change["subject"], event["patchSet"]["number"], owner, change["url"])
 
         self.send_message("comment", change["project"], change["branch"], message)
 
