@@ -103,7 +103,24 @@ class GerritThread(threading.Thread):
 
 
 class IrcClient(irclib.SimpleIRCClient):
-    pass
+    def on_pubmsg(self, connection, event):
+        # source:  w00t!w00t@staff.chatspike.net
+        # target: #devel-qtbot
+        # arguments: ['ff']
+        message = event.arguments()[0]
+
+        # JIRA bugs first
+        bugs = re.findall(r"\b(Q[A-Z]+\-[0-9]+)\b", message)
+
+        for bug in bugs:
+            connection.privmsg(event.target(), "https://bugreports.qt.nokia.com/browse/%s" % (bug))
+
+        # gerrit search: http://codereview.qt-project.org/#q,I,n,z
+        # where I is the search thing
+        changes = re.findall(r"(I[0-9a-f]{40})", message)
+
+        for change in changes:
+            connection.privmsg(event.target(), "https://codereview.qt-project.org/#q,%s,n,z" % (change))
 
 
 class IrcThread(threading.Thread):
