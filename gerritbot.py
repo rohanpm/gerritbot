@@ -28,6 +28,7 @@ import socket, paramiko
 import threading, time, random
 import simplejson
 import irclib
+import urllib2
 
 
 # config file section titles
@@ -100,6 +101,14 @@ class GerritThread(threading.Thread):
         except Exception, e:
             print self, "unexpected", e
 
+def getUrl(url):
+    print "Loading url %s" % (url)
+
+    try:
+        f = urllib2.urlopen(url, None, 5)
+    except:
+        return None
+    return f.read()
 
 
 class IrcClient(irclib.SimpleIRCClient):
@@ -113,7 +122,20 @@ class IrcClient(irclib.SimpleIRCClient):
         bugs = re.findall(r"\b(Q[A-Z]+\-[0-9]+)\b", message)
 
         for bug in bugs:
-            connection.privmsg(event.target(), "https://bugreports.qt.nokia.com/browse/%s" % (bug))
+            json = getUrl("https://bugreports.qt.nokia.com/rest/api/2.0.alpha1/issue/%s" % (bug))
+
+            if json == None:
+                # error
+                connection.privmsg(event.target(), "timed out (or something) while trying to load bug %s" % (bug))
+            else:
+                try:
+                    ojson = simplejson.loads(json)
+                    connection.privmsg(event.target(),
+                            "https://bugreports.qt.nokia.com/browse/%s: %s" % (bug, ojson["fields"]["summary"]["value"]))
+                except:
+                    print "exception parsing json!"
+                    print json
+                    connection.privmsg(event.target(), "%s was not a valid bug or something" % (bug))
 
         # gerrit search: http://codereview.qt-project.org/#q,I,n,z
         # where I is the search thing
@@ -287,12 +309,9 @@ time.sleep(5)
 
 gerrit = GerritThread(config, irc); gerrit.start()
 
-
-
 while True:
     try:
         line = sys.stdin.readline()
     except KeyboardInterrupt:
         break
-
 
