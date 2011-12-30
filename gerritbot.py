@@ -180,6 +180,7 @@ class IrcThread(threading.Thread):
         self.client.connection.mode(nick, mode)
         time.sleep(2)
         self.client.connection.join(channel, key)
+        self.client.connection.join(self.config.get(IRC, "additionalchannels"))
 
         for name, channel in self.project_channels.iteritems():
             self.client.connection.join(channel)
