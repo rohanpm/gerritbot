@@ -275,24 +275,31 @@ class IrcThread(threading.Thread):
         print "sending message for " + project
         branch_color = self.branch_colors.get(branch)
         project_channel = self.project_channels.get(project)
-        if project_channel == None:
-            project = project.replace("qt/", "")
-            project_channel = self.config.get(IRC, "channel")
-            branch = project + "/" + branch
-        print "sending to " + project_channel
 
         if branch_color != None:
             msg_branch = branch_color + branch + color()
         else:
             msg_branch = branch
 
-        message = "[%s]: %s" % (msg_branch, orig_message)
-        self.client.connection.privmsg(project_channel, message)
-
         # CC to the generic channel
+        message = "[%s]: %s" % (msg_branch, orig_message)
         if project_channel != self.config.get(IRC, "channel"):
+            self.client.connection.privmsg(project_channel, message)
+
+        if project_channel == None:
+            project = project.replace("qt/", "")
+            project_channel = self.config.get(IRC, "channel")
+            branch = project + "/" + branch
+
+            if branch_color != None:
+                msg_branch = branch_color + branch + color()
+            else:
+                msg_branch = branch
+
+            message = "[%s]: %s" % (msg_branch, orig_message)
             self.client.connection.privmsg(self.config.get(IRC, "channel"), message)
-        pass
+
+
 
 irc = IrcThread(config); irc.start()
 
