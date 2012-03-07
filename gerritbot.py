@@ -123,6 +123,7 @@ class IrcClient(irclib.SimpleIRCClient):
 
         for bug in bugs:
             json = getUrl("https://bugreports.qt.nokia.com/rest/api/2.0.alpha1/issue/%s" % (bug))
+            print "Reporting bug %s to %s" % (bug, event.target())
 
             if json == None:
                 # error
@@ -143,6 +144,7 @@ class IrcClient(irclib.SimpleIRCClient):
         changes = re.findall(r"(I[0-9a-f]{40})", message)
 
         for change in changes:
+            print "Reporting change %s to %s" % (change, event.target())
             connection.privmsg(event.target(), "https://codereview.qt-project.org/#q,%s,n,z" % (change))
 
 
