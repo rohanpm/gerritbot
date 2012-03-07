@@ -301,6 +301,9 @@ class IrcThread(threading.Thread):
             message = "[%s]: %s" % (msg_branch, orig_message)
             self.client.connection.privmsg(self.config.get(IRC, "channel"), message)
 
+        # don't flood
+        time.sleep(1)
+
 
 
 irc = IrcThread(config); irc.start()
