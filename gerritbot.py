@@ -268,7 +268,7 @@ class IrcThread(threading.Thread):
         # special cases
         if email_str == "qt_sanity_bot@ovi.com":
             return "Qt Sanity Bot"
-        elif email_str == "qt-info@nokia.com":
+        elif email_str == "ci-noreply@qt-project.org":
             return "Qt CI"
 
         return re.compile(r'@.+').sub("", email_str)
