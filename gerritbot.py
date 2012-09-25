@@ -122,7 +122,7 @@ class IrcClient(irclib.SimpleIRCClient):
         bugs = re.findall(r"\b(Q[A-Z]+\-[0-9]+)\b", message)
 
         for bug in bugs:
-            json = getUrl("https://bugreports.qt.nokia.com/rest/api/2.0.alpha1/issue/%s" % (bug))
+            json = getUrl("https://bugreports.qt-project.org/rest/api/2/issue/%s" % (bug))
             print "Reporting bug %s to %s" % (bug, event.target())
 
             if json == None:
@@ -131,9 +131,9 @@ class IrcClient(irclib.SimpleIRCClient):
             else:
                 try:
                     ojson = simplejson.loads(json)
-                    bugurl = "https://bugreports.qt.nokia.com/browse/%s" % (bug)
+                    bugurl = "https://bugreports.qt-project.org/browse/%s" % (bug)
                     connection.privmsg(event.target(),
-                            "%s: %s - %s" % (irclib.nm_to_n(event.source()), ojson["fields"]["summary"]["value"], bugurl))
+                            "%s: %s - %s" % (irclib.nm_to_n(event.source()), ojson["fields"]["summary"], bugurl))
                 except:
                     print "exception parsing json!"
                     print json
