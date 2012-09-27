@@ -237,8 +237,12 @@ class IrcThread(threading.Thread):
             return # no need to spam sanity +1s
 
         if author == "Qt CI":
-            # special case to detect CI pass/fail
-            if event["comment"] == "Successful integration\n\nNo regressions!":
+            comment = event["comment"]
+            # special case to detect CI pass/fail;
+            # old style includes the same message on every pass, new style includes more
+            # information but the first line shall always end with ": SUCCESS" on pass.
+            if comment == "Successful integration\n\nNo regressions!" \
+              or re.search(r'^[^\n]+:\sSUCCESS\n', comment):
                 message = "%s from %s %s_PASSED_%s CI - %s" % (change["subject"], owner, color(GREEN), color(), change["url"])
             else:
                 message = "%s from %s %s_FAILED_%s CI - %s" % (change["subject"], owner, color(RED), color(), change["url"])
